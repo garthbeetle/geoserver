@@ -8,9 +8,11 @@ def get_from_db(query):
 
 
 #set up webapp2 server. remember to cancel build often, or kill it in task manager
+#app.yaml to configure.
+
 class HelloWebapp2(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello, webapp2!<p> doasdfa</p>')
+        self.response.write('Hello, weddadasdfadfbapp2!')
 
 
 class APIHandler(webapp2.RequestHandler):
