@@ -3,7 +3,6 @@ import sys, csv
 import os
 from glob import glob
 
-
 #Use pyscopg2 to create connection and then cursor. Will user cursor.execute() to do sql
 
 conn = psycopg2.connect("host='localhost' dbname='census2011' user='postgres' password='password'")
@@ -17,21 +16,31 @@ csvNames =  glob('D:\\abs\\census2011\\2011_BCP_SA1_for_NSW_short-header\\2011 C
 #sql create table statement with types
 #print ERROR if error
 
-sql_strings = []
-for file in csvNames:
-	with open(file, 'rb') as f:
-		r = csv.reader(f)
-		headers = r.next()
-		types = r.next()
-		tablename = 'a' + os.path.splitext(os.path.basename(file))[0]
-		columns = ','.join('%s float' % name for name in headers)
-		sql_strings.append("CREATE TABLE %s (%s);" % (tablename, columns))
+directory = 'D:\\abs\\census2011\\2011_BCP_SA1_for_NSW_short-header\\2011 Census BCP Statistical Areas Level 1 for NSW\\NSW\\*'
 
-print sql_strings[0]
+def createTables(directory, primary):
+"""takes a dir and adds tables in postgres for every csv file, column 
+for every header, taking primary as a string for a common primary key
+and uploads their contained data"""
+	csvNames =  glob(directory)
+	sql_strings = []
+	for file in csvNames:
+		with open(file, 'rb') as f:
+			r = csv.reader(f)
+			headers = r.next()
+			types = r.next()
+			tablename = 'a' + os.path.splitext(os.path.basename(file))[0]
+			columns = ','.join('%s float' % name for name in headers)
+			sql_string = ("CREATE TABLE %s (%s);" % (tablename, columns))
+			cursor.execute(sql_string)
+			conn.commit()
+			cursor.execute("ALTER TABLE %s ADD PRIMARY KEY (%s);" % (tablename, primary))
+			conn.commit()
+			cursor.execute("Copy %s from '%s' with delimiter ',' csv header;" %(tablename,file))
+			conn.commit()
+
+conn.close()
 	
-	
-cursor.execute(sql_strings[0])
-conn.commit()
 #in that same loop, after the creation of the table, import the csv data
 #with another sql statement
 
